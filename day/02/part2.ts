@@ -1,7 +1,6 @@
-const reports = Deno.readTextFileSync('day/02/input.txt')
-  .trim()
-  .split('\n')
-  .map((line) => line.split(' ').map(Number))
+import { textInput } from '../../shared.ts'
+
+const reports = textInput.split('\n').map((line) => line.split(' ').map(Number))
 console.log(reports)
 
 const isSafe = (line: number[]): boolean => {
@@ -20,7 +19,7 @@ const isSafe = (line: number[]): boolean => {
 
 // const safeLines = reports.filter(isSafe).length
 
-const safeLines = reports.filter(line => {
+const safeLines = reports.filter((line) => {
   console.log('>> testing line:', line)
   if (isSafe([...line])) return true
 

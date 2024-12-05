@@ -1,4 +1,6 @@
-const lines = Deno.readTextFileSync('day/04/input.txt').trim().split('\n')
+import { textInput } from '../../shared.ts'
+
+const lines = textInput.split('\n')
 console.log({ lines })
 
 const totalLines = lines.length
