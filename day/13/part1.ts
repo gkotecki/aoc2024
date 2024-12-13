@@ -58,4 +58,4 @@ for (const [a, b, prize] of machines) {
   if (accr < Infinity) totalTokens += accr
 }
 
-console.log({ totalTokens })
+console.log({ totalTokens }) // 480
