@@ -11,7 +11,9 @@ export function printMatrix(
 ) {
   options.printCoords = true
 
-  const uniqueChars = new Set(matrix.flat())
+  const uniqueChars = [...new Set(matrix.flat())].toSorted()
+  const maxCharLength = Math.max(...uniqueChars.map((char) => char.toString().length), 3)
+
   const colorMap = new Map(
     Array.from(uniqueChars).map((char, index) => [char, `\x1b[48;5;${index + 0}m`]),
   )
@@ -23,8 +25,7 @@ export function printMatrix(
     const paintedRow = row
       .map((cell) => {
         const cellStr = cell.toString()
-        const paddedCell =
-          cellStr.length === 1 ? ` ${cellStr} ` : cellStr.length === 2 ? ` ${cellStr}` : cellStr
+        const paddedCell = cellStr.padEnd(((maxCharLength + 1) / 2) | 0).padStart(maxCharLength)
         return `${colorMap.get(cell)}${paddedCell}`
       })
       .join('')
