@@ -32,12 +32,22 @@ frontier.push([start.r, start.c])
 const cameFrom = new Map<string, string | undefined>()
 cameFrom.set(startStr, undefined)
 
+const costSoFar = new Map<string, number>()
+costSoFar.set(startStr, 0)
+
 while (frontier.length > 0) {
   const current = frontier.shift()!
+
+  if (`${current[0]},${current[1]}` === endStr) break
+
   for (const next of getNeighbors(current)) {
-    if (!cameFrom.has(`${next[0]},${next[1]}`)) {
+    const nextStr = `${next[0]},${next[1]}`
+    let newCost = costSoFar.get(`${current[0]},${current[1]}`)! + 1
+
+    if (!costSoFar.has(nextStr) || newCost < costSoFar.get(nextStr)!) {
       frontier.push(next)
-      cameFrom.set(`${next[0]},${next[1]}`, `${current[0]},${current[1]}`)
+      costSoFar.set(nextStr, newCost)
+      cameFrom.set(nextStr, `${current[0]},${current[1]}`)
     }
   }
 }
@@ -56,7 +66,10 @@ console.log(path.length)
 
 matrix.forEach((row, r) => {
   row.forEach((cell, c) => {
+    if (['E', 'S'].includes(matrix[r][c])) return
     if (path.includes(`${r},${c}`)) matrix[r][c] = ','
+    // if (![',', 'E', 'S'].includes(matrix[r][c]) && costSoFar.has(`${r},${c}`))
+    //   matrix[r][c] = costSoFar.get(`${r},${c}`)!.toString()
   })
 })
 

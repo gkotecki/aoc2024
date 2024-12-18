@@ -5,7 +5,10 @@ export const inputSuffix = Deno.args[2]
 const inputPath = `day/${day}/input${inputSuffix ? `-${inputSuffix}` : ''}.txt`
 export const textInput = Deno.readTextFileSync(inputPath).trim()
 
-export function printMatrix(matrix: (number | string)[][], options: { printCoords?: boolean } = {}) {
+export function printMatrix(
+  matrix: (number | string)[][],
+  options: { printCoords?: boolean } = {},
+) {
   options.printCoords = true
 
   const uniqueChars = new Set(matrix.flat())
@@ -17,7 +20,14 @@ export function printMatrix(matrix: (number | string)[][], options: { printCoord
     console.log('   ' + colIndexes)
   }
   matrix.forEach((row, rowIndex) => {
-    const paintedRow = row.map((cell) => `${colorMap.get(cell)} ${cell} `).join('')
+    const paintedRow = row
+      .map((cell) => {
+        const cellStr = cell.toString()
+        const paddedCell =
+          cellStr.length === 1 ? ` ${cellStr} ` : cellStr.length === 2 ? ` ${cellStr}` : cellStr
+        return `${colorMap.get(cell)}${paddedCell}`
+      })
+      .join('')
 
     console.log(
       `\x1b[0m${options?.printCoords ? rowIndex.toString().padStart(2) : ''} ${paintedRow}`,
