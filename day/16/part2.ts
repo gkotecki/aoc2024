@@ -47,8 +47,6 @@ while (frontier.length > 0) {
   const [currR, currC, currDir] = frontier.pop()!
   const currentStr = `${currR},${currC}`
 
-  // if (currentStr === endStr) break
-
   for (const [nextR, nextC, nextDir, turnCost] of getNeighbors([currR, currC], currDir)) {
     const nextStr = `${nextR},${nextC}`
     let newCost = costSoFar.get(currentStr)! + 1 + turnCost
@@ -71,8 +69,6 @@ while (true) {
   }
 }
 
-console.log(path.length)
-
 matrix.forEach((row, r) => {
   row.forEach((cell, c) => {
     if (['E', 'S'].includes(matrix[r][c])) return
@@ -84,4 +80,6 @@ matrix.forEach((row, r) => {
 
 printMatrix(matrix)
 
-console.log(costSoFar.get(endStr))
+console.log('cost so far:')
+console.log(costSoFar.get(endStr), '===', 7036, ' pt1 ex1 ok:', costSoFar.get(endStr) === 7036)
+console.log(costSoFar.get(endStr), '===', 11048, ' pt1 ex2 ok:', costSoFar.get(endStr) === 11048)

@@ -13,20 +13,19 @@ export function printMatrix(
 
   const uniqueChars = [...new Set(matrix.flat())].toSorted()
   const maxCharLength = Math.max(...uniqueChars.map((char) => char.toString().length), 3)
+  const padded = (str: string) => str.padEnd(((maxCharLength + 1) / 2) | 0).padStart(maxCharLength)
 
   const colorMap = new Map(
     Array.from(uniqueChars).map((char, index) => [char, `\x1b[48;5;${index + 0}m`]),
   )
   if (options?.printCoords) {
-    const colIndexes = matrix[0].map((_, i) => i.toString().padEnd(3)).join('')
+    const colIndexes = matrix[0].map((_, i) => padded(i.toString())).join('')
     console.log('   ' + colIndexes)
   }
   matrix.forEach((row, rowIndex) => {
     const paintedRow = row
       .map((cell) => {
-        const cellStr = cell.toString()
-        const paddedCell = cellStr.padEnd(((maxCharLength + 1) / 2) | 0).padStart(maxCharLength)
-        return `${colorMap.get(cell)}${paddedCell}`
+        return `${colorMap.get(cell)}${padded(cell.toString())}`
       })
       .join('')
 
