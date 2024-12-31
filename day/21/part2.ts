@@ -153,7 +153,7 @@ const dirMap: Record<string, Record<string, string>> = {
     'A': 'A',
     '^': '<A',
     '<': 'v<<A',
-    'v': 'v<A',
+    'v': '<vA',
     '>': 'vA',
   },
   '^': {
@@ -161,7 +161,7 @@ const dirMap: Record<string, Record<string, string>> = {
     '^': 'A',
     '<': 'v<A',
     'v': 'vA',
-    '>': '>vA',
+    '>': 'v>A',
   },
   '<': {
     'A': '>>^A',
@@ -179,11 +179,30 @@ const dirMap: Record<string, Record<string, string>> = {
   },
   '>': {
     'A': '^A',
-    '^': '^<A',
+    '^': '<^A',
     '<': '<<A',
     'v': '<A',
     '>': 'A',
   },
+}
+
+const memo = new Map<string, number>()
+
+function getComplexity(input: string, depth: number, currentChar = 'A'): number {
+  const key = `${input}-${depth}-${currentChar}`
+  if (memo.has(key)) return memo.get(key)!
+
+  if (depth === 0) return input.length
+
+  let total = 0
+  for (const char of input) {
+    const dirs = dirMap[currentChar][char]
+    currentChar = char
+    total += getComplexity(dirs, depth - 1)
+  }
+
+  memo.set(key, total)
+  return total
 }
 
 let totalComplexity = 0
@@ -191,58 +210,37 @@ let totalComplexity = 0
 for (const input of inputs) {
   console.log({ input })
 
-  let aggA = ''
-  let aggB = ''
-  let aggC = ''
+  let currentKey = 'A'
+  let complexity = 0
 
-  let currentA = 'A'
-  for (const charA of input) {
-    const dirsA = keypadMap[currentA][charA]
-    aggA += dirsA
-    currentA = charA
-
-    let currentB = 'A'
-    for (const charB of dirsA) {
-      const dirsB = dirMap[currentB][charB]
-      aggB += dirsB
-      currentB = charB
-
-      let currentC = 'A'
-      for (const charC of dirsB) {
-        const dirsC = dirMap[currentC][charC]
-        aggC += dirsC
-        currentC = charC
-        // aggC += ' '
-      }
-      // aggB += ' '
-    }
-    // aggA += ' '
+  for (const char of input) {
+    const keyPresses = keypadMap[currentKey][char]
+    currentKey = char
+    complexity += getComplexity(keyPresses, 25)
   }
 
-  console.log(aggA, aggA.length)
-  // console.log('<A^A>^^AvvvA')
-  console.log(aggB, aggB.length)
-  // console.log('v<<A>>^A<A>AvA<^AA>A<vAAA>^A')
-  console.log(aggC, aggC.length)
-  // console.log('<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A')
-
-  const complexity = aggC.length * +input.slice(0, 3)
-  console.log(aggC.length, '*', +input.slice(0, 3), '=', complexity, '\n')
-  totalComplexity += complexity
+  const total = complexity * +input.slice(0, 3)
+  console.log(complexity, '*', +input.slice(0, 3), '=', total, '\n')
+  totalComplexity += total
 }
 
 console.log({ totalComplexity })
 /**
  * part 1 tries:
- *
- * real input tries:
- * 163246 too high
- * 161886 too high
- * 159558 too high
  * 157230 ok!
  *
- * example 2 tries:
- * 454856 too high, pass ex1, pass some other stuff, real input too high
- * 452528 too high, pass ex1, pass some other stuff, real input too high
- * 446624 prolly too high, fails some outside examples
+ * part 2 tries:
+ * example input response: 154115708116294
+ * 24 loops: 117970480082524
+ * 25 loops: 302092607047068
+ *
+ * 24 loops:
+ *  150409815895912 too low
+ *
+ * 25 loops:
+ *  385161552449584 too high
+ *  195969155897936 ok !!!!!!!!!!!!!!!!
  */
+
+// 82050061710,  72242026390,  81251039228,  80786362258,  77985628636
+// 162694909118, 141722550692, 158790233128, 158499927834, 152472127130
