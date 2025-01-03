@@ -3,7 +3,7 @@ import { textInput } from '../../shared.ts'
 const connections = textInput.split('\n')
 const pairs = connections.map((line) => line.split('-'))
 const sortedPairs = pairs.map((pair) => pair.sort()).sort()
-const sortedKeyPairs = sortedPairs.map((pair) => pair.join('-'))
+const sortedKeyPairs = sortedPairs.map((pair) => pair.join(','))
 const computers = [...new Set(sortedPairs.flat())].sort()
 
 console.log({
@@ -28,14 +28,31 @@ for (const [computer, connectionSet] of connectionMap) {
   const cons = [...connectionSet]
   for (let i = 0; i < cons.length; i++) {
     for (let j = i + 1; j < cons.length; j++) {
-      const key = [cons[i], cons[j]].sort().join('-')
+      const key = [cons[i], cons[j]].sort().join(',')
       if (sortedKeyPairs.includes(key)) {
         trios.add([computer, cons[i], cons[j]].sort().join(','))
       }
     }
   }
 }
+const sortedTrios = [...trios].sort()
 console.log(trios)
+console.log(sortedTrios)
 
-const filtered = [...trios].filter((pcs) => !!pcs.split(',').find((pc) => pc.startsWith('t')))
-console.log(filtered, filtered.length)
+const quads = new Set<string>()
+for (const [computer, connectionSet] of connectionMap) {
+  const cons = [...connectionSet]
+  for (let i = 0; i < cons.length; i++) {
+    for (let j = i + 1; j < cons.length; j++) {
+      for (let k = j + 1; k < cons.length; k++) {
+        const key = [cons[i], cons[j], cons[k]].sort().join(',')
+        if (sortedTrios.includes(key)) {
+          quads.add([computer, key.split(',')].sort().join(','))
+        }
+      }
+    }
+  }
+}
+const sortedQuads = [...quads].sort()
+console.log(quads)
+console.log(sortedQuads)
