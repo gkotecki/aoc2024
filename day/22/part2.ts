@@ -1,6 +1,7 @@
 import { textInput } from '../../shared.ts'
 
 const inputs = textInput.split('\n').map(Number)
+// const inputs = [123]
 
 console.log({ inputs })
 
@@ -14,17 +15,43 @@ const getNext = (secret: number) => {
   return secret
 }
 
+const priceMap = new Map<number, Map<string, number>>()
+const aggPriceMap = new Map<string, number>()
+
 function findSecret(secret: number) {
+  const secretMap = new Map<string, number>()
+  let lastFive = [0, 0, 0, 0, 0] as number[]
   for (let index = 0; index < 2000; index++) {
+    const price = secret % 10
+    lastFive = [price, lastFive[0] || 0, lastFive[1] || 0, lastFive[2] || 0, lastFive[3] || 0]
+    const diffs = lastFive
+      .map((x, i) => x - (lastFive[i + 1] || 0))
+      .slice(0, 4)
+      .join(',')
+    // console.log(price, lastFive.join(), diffs, 'from', secret)
+    if (!secretMap.has(diffs)) secretMap.set(diffs, price)
     secret = getNext(secret)
   }
-  return secret
+  return secretMap
 }
 
-let sum = 0
 for (const secret of inputs) {
-  const newSecret = findSecret(secret)
-  console.log({ newSecret })
-  sum += newSecret
+  console.log('>> initial secret', secret)
+  const secretMap = findSecret(secret)
+  priceMap.set(secret, secretMap)
+
+  for (const [key, value] of secretMap) {
+    const aggValue = aggPriceMap.get(key) || 0
+    aggPriceMap.set(key, aggValue + value)
+  }
 }
-console.log({ sum })
+
+const sortedMap = new Map([...aggPriceMap.entries()].sort((a, b) => b[1] - a[1]))
+console.log('Sorted map:', sortedMap)
+
+/**
+ * part 2 tries:
+ * 3062 too high
+ *
+ * 2189 ok! >> check sorted map, grab last from non-initials
+ */
