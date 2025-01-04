@@ -23,36 +23,38 @@ for (const computer of computers) {
 }
 console.log('connectionMap', connectionMap)
 
-const trios = new Set<string>()
-for (const [computer, connectionSet] of connectionMap) {
-  const cons = [...connectionSet]
-  for (let i = 0; i < cons.length; i++) {
-    for (let j = i + 1; j < cons.length; j++) {
-      const key = [cons[i], cons[j]].sort().join(',')
-      if (sortedKeyPairs.includes(key)) {
-        trios.add([computer, cons[i], cons[j]].sort().join(','))
-      }
-    }
-  }
-}
-const sortedTrios = [...trios].sort()
-console.log(trios)
-console.log(sortedTrios)
+function findCliques(graph: Map<string, Set<string>>): Set<string>[] {
+  const results: Set<string>[] = []
 
-const quads = new Set<string>()
-for (const [computer, connectionSet] of connectionMap) {
-  const cons = [...connectionSet]
-  for (let i = 0; i < cons.length; i++) {
-    for (let j = i + 1; j < cons.length; j++) {
-      for (let k = j + 1; k < cons.length; k++) {
-        const key = [cons[i], cons[j], cons[k]].sort().join(',')
-        if (sortedTrios.includes(key)) {
-          quads.add([computer, key.split(',')].sort().join(','))
-        }
-      }
+  function bronKerbosch(potential: Set<string>, excluded: Set<string>, current: Set<string>) {
+    if (potential.size === 0 && excluded.size === 0) {
+      if (current.size > 0) results.push(new Set(current))
+      return
+    }
+
+    const pivot = [...potential, ...excluded][0]
+    const candidates = new Set([...potential].filter((v) => !graph.get(pivot)?.has(v)))
+
+    for (const vertex of candidates) {
+      const neighbors = graph.get(vertex) || new Set()
+      bronKerbosch(
+        new Set([...potential].filter((v) => neighbors.has(v))),
+        new Set([...excluded].filter((v) => neighbors.has(v))),
+        new Set([...current, vertex]),
+      )
+      potential.delete(vertex)
+      excluded.add(vertex)
     }
   }
+
+  bronKerbosch(new Set(computers), new Set(), new Set())
+
+  return results
 }
-const sortedQuads = [...quads].sort()
-console.log(quads)
-console.log(sortedQuads)
+
+const cliques = findCliques(connectionMap)
+const longestClique = cliques.sort((a, b) => b.size - a.size)[0]
+
+console.log({ cliques })
+console.log({ longestClique }, longestClique.size)
+console.log([...longestClique].sort().join(','))
