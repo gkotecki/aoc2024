@@ -100,25 +100,25 @@ async function readArrowKey(): Promise<ArrowKey | null> {
 
 let pos = [initialPosition.r, initialPosition.c] as [number, number]
 
-printMatrix(map)
-while (true) {
-  const key = await readArrowKey()
-  console.clear()
-  console.log('\n', key)
-  printMatrix(map)
-  if (key) {
-    pos = move(pos, key)
-  }
-  printMatrix(map)
-}
+// printMatrix(map)
+// while (true) {
+//   const key = await readArrowKey()
+//   console.clear()
+//   console.log('\n', key)
+//   printMatrix(map)
+//   if (key) {
+//     pos = move(pos, key)
+//   }
+//   printMatrix(map)
+// }
 
 printMatrix(map)
 
 for (const dir of directions) {
-  if (dir === '^') pos = move(pos, 'up').newPos
-  if (dir === 'v') pos = move(pos, 'down').newPos
-  if (dir === '<') pos = move(pos, 'left').newPos
-  if (dir === '>') pos = move(pos, 'right').newPos
+  if (dir === '^') pos = move(pos, 'up')
+  if (dir === 'v') pos = move(pos, 'down')
+  if (dir === '<') pos = move(pos, 'left')
+  if (dir === '>') pos = move(pos, 'right')
 }
 
 printMatrix(map)
@@ -126,7 +126,7 @@ printMatrix(map)
 let sum = 0
 for (let l = 0; l < map.length; l++) {
   for (let c = 0; c < map[0].length; c++) {
-    if (map[l][c] === 'O') {
+    if (map[l][c] === '[') {
       sum += 100 * l + c
     }
   }
