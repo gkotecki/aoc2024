@@ -24,44 +24,58 @@ const dirMap = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }
 
 type Directions = 'up' | 'down' | 'left' | 'right'
 
-function move(
-  [l, c]: [number, number],
-  dir: Directions,
-): { wallAhead: boolean; newPos: [number, number] } {
+function move([l, c]: [number, number], dir: Directions): [number, number] {
   const [nextL, nextC] = [l + dirMap[dir][0], c + dirMap[dir][1]]
   const currentCell = map[l][c]
   const nextCell = map[nextL][nextC]
-  console.log('checking', l, c, ', this is', currentCell)
 
-  if (
-    nextCell === '#' ||
-    (currentCell == '[' && map[nextL][nextC + 1] === '#') ||
-    (currentCell == ']' && map[nextL][nextC - 1] === '#')
-  ) {
-    console.log('early block')
-    return { wallAhead: true, newPos: [l, c] }
+  // console.log([l, c], { currentCell, nextCell })
+
+  const checkAhead: [number, number][] = []
+  checkAhead.push([nextL, nextC])
+  // if (currentCell == '[') checkAhead.push([nextL, nextC + 1])
+  // if (currentCell == ']') checkAhead.push([nextL, nextC - 1])
+
+  while (checkAhead.length) {
+    const [nl, nc] = checkAhead.pop()!
+
+    if (map[nl][nc] === '#') return [l, c]
+
+    if ((dir == 'up' || dir == 'down') && (map[nl][nc] == '[' || map[nl][nc] == ']')) {
+      const [newL, newC] = [nl + dirMap[dir][0], nc + dirMap[dir][1]]
+      checkAhead.push([newL, newC])
+      if (map[nl][nc] == '[') checkAhead.push([newL, newC + 1])
+      if (map[nl][nc] == ']') checkAhead.push([newL, newC - 1])
+    }
+  }
+
+  if ((dir == 'left' || dir == 'right') && nextCell !== '.') {
+    const [movedL, movedC] = move([nextL, nextC], dir)
+    if (movedL === nextL && movedC === nextC) {
+      return [l, c]
+    }
   }
 
   if (dir == 'up' || dir == 'down') {
     if (nextCell == '[') {
-      if (move([nextL, nextC + 1], dir).wallAhead) {
-        return { wallAhead: true, newPos: [l, c] }
+      const [ll, lc] = move([nextL, nextC], dir)
+      const [rl, rc] = move([nextL, nextC + 1], dir)
+      if ((ll === nextL && lc === nextC) || (rl === nextL && rc === nextC + 1)) {
+        return [l, c]
       }
-    } else if (nextCell == ']') {
-      if (move([nextL, nextC - 1], dir).wallAhead) {
-        return { wallAhead: true, newPos: [l, c] }
+    }
+    if (nextCell == ']') {
+      const [ll, lc] = move([nextL, nextC - 1], dir)
+      const [rl, rc] = move([nextL, nextC], dir)
+      if ((ll === nextL && lc === nextC - 1) || (rl === nextL && rc === nextC)) {
+        return [l, c]
       }
     }
   }
 
-  if ((nextCell == '[' || nextCell == ']') && move([nextL, nextC], dir).wallAhead) {
-    return { wallAhead: true, newPos: [l, c] }
-  }
-
-  console.log('missing conditions, pass')
   map[nextL][nextC] = currentCell
   map[l][c] = '.'
-  return { wallAhead: false, newPos: [nextL, nextC] }
+  return [nextL, nextC]
 }
 
 type ArrowKey = 'up' | 'down' | 'right' | 'left'
@@ -93,7 +107,7 @@ while (true) {
   console.log('\n', key)
   printMatrix(map)
   if (key) {
-    pos = move(pos, key).newPos
+    pos = move(pos, key)
   }
   printMatrix(map)
 }
