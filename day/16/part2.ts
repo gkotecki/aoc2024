@@ -91,8 +91,8 @@ while (frontier.size > 0) {
 
   for (const [newR, newC, newDirR, newDirC, newCost] of [
     [r + dr, c + dc, dr, dc, cost + 1],
-    [r, c, dc, -dr, cost + 1000],
-    [r, c, -dc, dr, cost + 1000],
+    [r + dc, c - dr, dc, -dr, cost + 1001],
+    [r - dc, c + dr, -dc, dr, cost + 1001],
   ]) {
     const next = new Node(newR, newC, newDirR, newDirC, current)
     if (matrix[next.row][next.col] === '#') continue
