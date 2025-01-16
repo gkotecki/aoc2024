@@ -1,105 +1,109 @@
 import { printMatrix, textInput } from '../../shared.ts'
 
-const grid = textInput.split('\n').map((row) => row.split(''))
+const matrix = textInput.split('\n').map((line) => line.split(''))
 
-printMatrix(grid)
+const start = matrix
+  .flatMap((row, r) => row.map((cell, c) => ({ cell, r, c })))
+  .find(({ cell }) => cell === 'S')!
 
-type Point = {
-  x: number
-  y: number
-}
+const end = matrix
+  .flatMap((row, r) => row.map((cell, c) => ({ cell, r, c })))
+  .find(({ cell }) => cell === 'E')!
 
 class Node {
-  position: Point
-  g: number // Cost from start to current node
-  h: number // Heuristic cost to end
-  f: number // Total cost (g + h)
-  parent: Node | null
-
-  constructor(pos: Point, g: number, h: number, parent: Node | null = null) {
-    this.position = pos
-    this.g = g
-    this.h = h
-    this.f = g + h
-    this.parent = parent
+  constructor(public row: number, public col: number) {}
+  get key() {
+    return `${this.row},${this.col}`
+  }
+  get coords() {
+    return [this.row, this.col]
   }
 }
 
-function manhattanDistance(p1: Point, p2: Point): number {
-  return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y)
+class PriorityQueue {
+  private elements: [Node, number][] = []
+  add(node: Node, priority: number) {
+    this.elements.push([node, priority])
+    this.elements.sort(([, a], [, b]) => a - b)
+  }
+  grab() {
+    return this.elements.shift()
+  }
+  get size() {
+    return this.elements.length
+  }
 }
 
-function getNeighbors(point: Point, grid: string[][]): Point[] {
-  const directions = [
-    { x: 0, y: 1 },
-    { x: 1, y: 0 },
-    { x: 0, y: -1 },
-    { x: -1, y: 0 },
-  ]
-  return directions
-    .map((dir) => ({ x: point.x + dir.x, y: point.y + dir.y }))
-    .filter(
-      (p) =>
-        p.x >= 0 && p.x < grid[0].length && p.y >= 0 && p.y < grid.length && grid[p.y][p.x] !== '#',
-    )
+printMatrix(matrix)
+
+function manhattanDistance(n1: Node, n2: Node): number {
+  return Math.abs(n1.row - n2.row) + Math.abs(n1.col - n2.col)
 }
 
-function findPath(grid: string[][]): Point[] {
-  let start: Point = { x: 0, y: 0 }
-  let end: Point = { x: 0, y: 0 }
+const startNode = new Node(start.r, start.c)
+const endNode = new Node(end.r, end.c)
 
-  // Find start and end positions
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] === 'S') start = { x, y }
-      if (grid[y][x] === 'E') end = { x, y }
-    }
+const frontier = new PriorityQueue()
+frontier.add(startNode, 0)
+
+const seen = new Set<string>()
+const path: Node[] = []
+let lowestCost = Infinity
+
+let step = 0
+while (frontier.size > 0) {
+  step++
+  if (step % 100 == 0) {
+    await new Promise((res) => setTimeout(res, 10))
+    console.clear()
+    printMatrix(matrix)
   }
 
-  const openSet: Node[] = []
-  const closedSet: Set<string> = new Set()
-  const startNode = new Node(start, 0, manhattanDistance(start, end))
-  openSet.push(startNode)
+  const [current, cost] = frontier.grab()!
+  seen.add(current.key)
+  path.push(current)
 
-  while (openSet.length > 0) {
-    openSet.sort((a, b) => a.f - b.f)
-    const current = openSet.shift()!
+  const distance = manhattanDistance(current, endNode)
 
-    if (current.position.x === end.x && current.position.y === end.y) {
-      // Reconstruct path
-      const path: Point[] = []
-      let currentNode: Node | null = current
-      while (currentNode !== null) {
-        path.unshift(currentNode.position)
-        currentNode = currentNode.parent
-      }
-      return path
-    }
+  const [r, c] = current.coords
 
-    closedSet.add(`${current.position.x},${current.position.y}`)
-
-    for (const neighbor of getNeighbors(current.position, grid)) {
-      if (closedSet.has(`${neighbor.x},${neighbor.y}`)) continue
-
-      const g = current.g + 1
-      const h = manhattanDistance(neighbor, end)
-      const neighborNode = new Node(neighbor, g, h, current)
-
-      if (
-        !openSet.some(
-          (node) =>
-            node.position.x === neighbor.x &&
-            node.position.y === neighbor.y &&
-            node.f < neighborNode.f,
-        )
-      ) {
-        openSet.push(neighborNode)
-      }
-    }
+  if (matrix[r][c] === '.') {
+    matrix[r][c] = distance.toString()
   }
 
-  return [] // No path found
+  if (matrix[r][c] === 'E') {
+    lowestCost = Math.min(lowestCost, cost)
+    continue
+  }
+
+  for (const [newR, newC] of [
+    [r + 1, c],
+    [r - 1, c],
+    [r, c + 1],
+    [r, c - 1],
+  ]) {
+    const next = new Node(newR, newC)
+    if (matrix[next.row][next.col] === '#') continue
+    if (seen.has(next.key)) continue
+    frontier.add(next, cost + 1)
+  }
 }
 
-const shortestTime = findPath(grid)
-console.log('Shortest initial time:', shortestTime)
+console.clear()
+printMatrix(matrix)
+console.log({ lowestCost })
+
+let cheats = 0
+const threshold = 100
+
+// path is ordered, so indexes == node-sequence == cost
+for (let i = 0; i < path.length; i++) {
+  for (let j = 0; j < i - threshold; j++) {
+    const distance = manhattanDistance(path[j], path[i])
+    if (distance <= 20 && i - j - distance >= threshold) {
+      cheats += 1
+    }
+  }
+}
+
+console.log({ cheats })

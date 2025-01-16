@@ -30,7 +30,7 @@ export function printMatrix(
       .join('')
 
     console.log(
-      `\x1b[0m${options?.printCoords ? rowIndex.toString().padStart(2) : ''} ${paintedRow}`,
+      `\x1b[0m${options?.printCoords ? rowIndex.toString().padStart(3) : ''} ${paintedRow}`,
     )
   })
   console.log('\x1b[0m') // reset
